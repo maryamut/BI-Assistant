@@ -1,232 +1,141 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const fs = require('fs');
-const path = require('path');
-
-const SQL_FILE_PATH = path.join(process.cwd(), 'InstNwnd_UTF8.txt');
-const OUTPUT_DIR = path.join(process.cwd(), 'src', 'data');
-const OUTPUT_FILE = path.join(OUTPUT_DIR, 'northwind.json');
-
-function parseSqlValues(valuesString) {
-  const result = [];
-  let current = '';
-  let inString = false;
-
-  for (let i = 0; i < valuesString.length; i++) {
-    const char = valuesString[i];
-
-    if (char === "'" && (i === 0 || valuesString[i - 1] !== '\\')) {
-      if (inString && valuesString[i + 1] === "'") {
-        current += "'";
-        i++; // رد کردن کوتیشن اسکیپ شده
-      } else {
-        inString = !inString;
-      }
-    } else if (char === ',' && !inString) {
-      result.push(cleanValue(current.trim()));
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  result.push(cleanValue(current.trim()));
-  return result;
+{
+  "metadata": {
+    "generatedAt": "1998-05-06T00:00:00.000Z",
+    "referenceDate": "1998-05-06"
+  },
+  "categories": [
+    { "categoryID": 1, "categoryName": "Beverages", "description": "Soft drinks, coffees, teas, beers, and ales" },
+    { "categoryID": 2, "categoryName": "Condiments", "description": "Sweet and savory sauces, relishes, spreads, and seasonings" },
+    { "categoryID": 3, "categoryName": "Confections", "description": "Desserts, candies, and sweet breads" },
+    { "categoryID": 4, "categoryName": "Dairy Products", "description": "Cheeses" },
+    { "categoryID": 5, "categoryName": "Grains/Cereals", "description": "Breads, crackers, pasta, and cereal" },
+    { "categoryID": 6, "categoryName": "Meat/Poultry", "description": "Prepared meats" },
+    { "categoryID": 7, "categoryName": "Produce", "description": "Dried fruit and bean curd" },
+    { "categoryID": 8, "categoryName": "Seafood", "description": "Seaweed and fish" }
+  ],
+  "customers": [
+    { "customerID": "ALFKI", "companyName": "Alfreds Futterkiste", "contactName": "Maria Anders", "city": "Berlin", "country": "Germany" },
+    { "customerID": "ANATR", "companyName": "Ana Trujillo Emparedados y helados", "contactName": "Ana Trujillo", "city": "México D.F.", "country": "Mexico" },
+    { "customerID": "ANTON", "companyName": "Antonio Moreno Taquería", "contactName": "Antonio Moreno", "city": "México D.F.", "country": "Mexico" },
+    { "customerID": "AROUT", "companyName": "Around the Horn", "contactName": "Thomas Hardy", "city": "London", "country": "UK" },
+    { "customerID": "BERGS", "companyName": "Berglunds snabbköp", "contactName": "Christina Berglund", "city": "Luleå", "country": "Sweden" },
+    { "customerID": "BLAUS", "companyName": "Blauer See Delikatessen", "contactName": "Hanna Moos", "city": "Mannheim", "country": "Germany" },
+    { "customerID": "BLONP", "companyName": "Blondesddsl père et fils", "contactName": "Frédérique Citeaux", "city": "Strasbourg", "country": "France" },
+    { "customerID": "BOLID", "companyName": "Bólido Comidas preparadas", "contactName": "Martín Sommer", "city": "Madrid", "country": "Spain" },
+    { "customerID": "BONAP", "companyName": "Bon app'", "contactName": "Laurence Lebihan", "city": "Marseille", "country": "France" },
+    { "customerID": "BOTTM", "companyName": "Bottom-Dollar Markets", "contactName": "Elizabeth Lincoln", "city": "Tsawassen", "country": "Canada" },
+    { "customerID": "BSBEV", "companyName": "B's Beverages", "contactName": "Victoria Ashworth", "city": "London", "country": "UK" },
+    { "customerID": "ERNSH", "companyName": "Ernst Handel", "contactName": "Roland Mendel", "city": "Graz", "country": "Austria" },
+    { "customerID": "FOLKO", "companyName": "Folk och fä HB", "contactName": "Maria Larsson", "city": "Bräcke", "country": "Sweden" },
+    { "customerID": "FRANK", "companyName": "Frankenversand", "contactName": "Peter Franken", "city": "München", "country": "Germany" },
+    { "customerID": "HILAA", "companyName": "HILARION-Abastos", "contactName": "Carlos Hernández", "city": "San Cristóbal", "country": "Venezuela" },
+    { "customerID": "HUNGO", "companyName": "Hungry Owl All-Night Grocers", "contactName": "Patricia McKenna", "city": "Cork", "country": "Ireland" },
+    { "customerID": "KOENE", "companyName": "Königlich Essen", "contactName": "Philip Cramer", "city": "Brandenburg", "country": "Germany" },
+    { "customerID": "LEHMS", "companyName": "Lehmanns Marktstand", "contactName": "Renate Messner", "city": "Frankfurt a.M.", "country": "Germany" },
+    { "customerID": "MEREP", "companyName": "Mère Paillarde", "contactName": "Jean Fresnière", "city": "Montréal", "country": "Canada" },
+    { "customerID": "QUICK", "companyName": "QUICK-Stop", "contactName": "Horst Kloss", "city": "Cunewalde", "country": "Germany" },
+    { "customerID": "RATTC", "companyName": "Rattlesnake Canyon Grocery", "contactName": "Paula Wilson", "city": "Albuquerque", "country": "USA" },
+    { "customerID": "SAVEA", "companyName": "Save-a-lot Markets", "contactName": "Jose Pavarotti", "city": "Boise", "country": "USA" },
+    { "customerID": "SEVES", "companyName": "Seven Seas Imports", "contactName": "Hari Kumar", "city": "London", "country": "UK" },
+    { "customerID": "WARTH", "companyName": "Wartian Herkku", "contactName": "Pirkko Koskitalo", "city": "Oulu", "country": "Finland" },
+    { "customerID": "WHITC", "companyName": "White Clover Markets", "contactName": "Karl Jablonski", "city": "Seattle", "country": "USA" }
+  ],
+  "employees": [
+    { "employeeID": 1, "lastName": "Davolio", "firstName": "Nancy", "title": "Sales Representative", "country": "USA" },
+    { "employeeID": 2, "lastName": "Fuller", "firstName": "Andrew", "title": "Vice President, Sales", "country": "USA" },
+    { "employeeID": 3, "lastName": "Leverling", "firstName": "Janet", "title": "Sales Representative", "country": "USA" },
+    { "employeeID": 4, "lastName": "Peacock", "firstName": "Margaret", "title": "Sales Representative", "country": "USA" },
+    { "employeeID": 5, "lastName": "Buchanan", "firstName": "Steven", "title": "Sales Manager", "country": "UK" },
+    { "employeeID": 6, "lastName": "Suyama", "firstName": "Michael", "title": "Sales Representative", "country": "UK" },
+    { "employeeID": 7, "lastName": "King", "firstName": "Robert", "title": "Sales Representative", "country": "UK" },
+    { "employeeID": 8, "lastName": "Callahan", "firstName": "Laura", "title": "Inside Sales Coordinator", "country": "USA" },
+    { "employeeID": 9, "lastName": "Dodsworth", "firstName": "Anne", "title": "Sales Representative", "country": "UK" }
+  ],
+  "shippers": [
+    { "shipperID": 1, "companyName": "Speedy Express", "phone": "(503) 555-9831" },
+    { "shipperID": 2, "companyName": "United Package", "phone": "(503) 555-3199" },
+    { "shipperID": 3, "companyName": "Federal Shipping", "phone": "(503) 555-9931" }
+  ],
+  "products": [
+    { "productID": 1, "productName": "Chai", "categoryID": 1, "unitPrice": 18, "unitsInStock": 39, "reorderLevel": 10, "discontinued": false },
+    { "productID": 2, "productName": "Chang", "categoryID": 1, "unitPrice": 19, "unitsInStock": 17, "reorderLevel": 25, "discontinued": false },
+    { "productID": 4, "productName": "Chef Anton's Cajun Seasoning", "categoryID": 2, "unitPrice": 22, "unitsInStock": 53, "reorderLevel": 0, "discontinued": false },
+    { "productID": 6, "productName": "Grandma's Boysenberry Spread", "categoryID": 2, "unitPrice": 25, "unitsInStock": 120, "reorderLevel": 25, "discontinued": false },
+    { "productID": 7, "productName": "Uncle Bob's Organic Dried Pears", "categoryID": 7, "unitPrice": 30, "unitsInStock": 15, "reorderLevel": 10, "discontinued": false },
+    { "productID": 8, "productName": "Northwoods Cranberry Sauce", "categoryID": 2, "unitPrice": 40, "unitsInStock": 6, "reorderLevel": 0, "discontinued": false },
+    { "productID": 10, "productName": "Ikura", "categoryID": 8, "unitPrice": 31, "unitsInStock": 31, "reorderLevel": 0, "discontinued": false },
+    { "productID": 11, "productName": "Queso Cabrales", "categoryID": 4, "unitPrice": 21, "unitsInStock": 22, "reorderLevel": 30, "discontinued": false },
+    { "productID": 14, "productName": "Tofu", "categoryID": 7, "unitPrice": 23.25, "unitsInStock": 35, "reorderLevel": 0, "discontinued": false },
+    { "productID": 16, "productName": "Pavlova", "categoryID": 3, "unitPrice": 17.45, "unitsInStock": 29, "reorderLevel": 10, "discontinued": false },
+    { "productID": 18, "productName": "Carnarvon Tigers", "categoryID": 8, "unitPrice": 62.5, "unitsInStock": 42, "reorderLevel": 0, "discontinued": false },
+    { "productID": 20, "productName": "Sir Rodney's Marmalade", "categoryID": 3, "unitPrice": 81, "unitsInStock": 40, "reorderLevel": 0, "discontinued": false },
+    { "productID": 24, "productName": "Guaraná Fantástica", "categoryID": 1, "unitPrice": 4.5, "unitsInStock": 20, "reorderLevel": 0, "discontinued": true },
+    { "productID": 28, "productName": "Rössle Sauerkraut", "categoryID": 7, "unitPrice": 45.6, "unitsInStock": 26, "reorderLevel": 0, "discontinued": true },
+    { "productID": 38, "productName": "Côte de Blaye", "categoryID": 1, "unitPrice": 263.5, "unitsInStock": 17, "reorderLevel": 15, "discontinued": false },
+    { "productID": 40, "productName": "Boston Crab Meat", "categoryID": 8, "unitPrice": 18.4, "unitsInStock": 123, "reorderLevel": 30, "discontinued": false },
+    { "productID": 56, "productName": "Gnocchi di nonna Alice", "categoryID": 5, "unitPrice": 38, "unitsInStock": 21, "reorderLevel": 30, "discontinued": false },
+    { "productID": 59, "productName": "Raclette Courdavault", "categoryID": 4, "unitPrice": 55, "unitsInStock": 79, "reorderLevel": 0, "discontinued": false },
+    { "productID": 60, "productName": "Camembert Pierrot", "categoryID": 4, "unitPrice": 34, "unitsInStock": 19, "reorderLevel": 0, "discontinued": false },
+    { "productID": 72, "productName": "Mozzarella di Giovanni", "categoryID": 4, "unitPrice": 34.8, "unitsInStock": 14, "reorderLevel": 0, "discontinued": false }
+  ],
+  "orders": [
+    { "orderID": 10248, "customerID": "VINET", "employeeID": 5, "orderDate": "1996-07-04", "requiredDate": "1996-08-01", "shippedDate": "1996-07-16", "shipVia": 3, "freight": 32.38, "shipName": "Vins et alcools Chevalier", "shipCity": "Reims", "shipCountry": "France" },
+    { "orderID": 10250, "customerID": "HANAR", "employeeID": 4, "orderDate": "1996-07-08", "requiredDate": "1996-08-05", "shippedDate": "1996-07-12", "shipVia": 2, "freight": 65.83, "shipName": "Hanari Carnes", "shipCity": "Rio de Janeiro", "shipCountry": "Brazil" },
+    { "orderID": 10252, "customerID": "SUPRD", "employeeID": 4, "orderDate": "1996-07-09", "requiredDate": "1996-08-06", "shippedDate": "1996-07-11", "shipVia": 2, "freight": 51.30, "shipName": "Suprêmes délices", "shipCity": "Charleroi", "shipCountry": "Belgium" },
+    { "orderID": 10258, "customerID": "ERNSH", "employeeID": 1, "orderDate": "1996-07-17", "requiredDate": "1996-08-14", "shippedDate": "1996-07-23", "shipVia": 1, "freight": 140.51, "shipName": "Ernst Handel", "shipCity": "Graz", "shipCountry": "Austria" },
+    { "orderID": 10260, "customerID": "OTTIK", "employeeID": 4, "orderDate": "1996-07-19", "requiredDate": "1996-08-16", "shippedDate": "1996-07-29", "shipVia": 1, "freight": 55.09, "shipName": "Ottilies Käseladen", "shipCity": "Köln", "shipCountry": "Germany" },
+    { "orderID": 10263, "customerID": "ERNSH", "employeeID": 9, "orderDate": "1996-07-23", "requiredDate": "1996-08-20", "shippedDate": "1996-07-31", "shipVia": 3, "freight": 146.06, "shipName": "Ernst Handel", "shipCity": "Graz", "shipCountry": "Austria" },
+    { "orderID": 10324, "customerID": "SAVEA", "employeeID": 9, "orderDate": "1996-10-08", "requiredDate": "1996-11-05", "shippedDate": "1996-10-10", "shipVia": 1, "freight": 214.27, "shipName": "Save-a-lot Markets", "shipCity": "Boise", "shipCountry": "USA" },
+    { "orderID": 10351, "customerID": "ERNSH", "employeeID": 1, "orderDate": "1996-11-11", "requiredDate": "1996-12-09", "shippedDate": "1996-11-20", "shipVia": 1, "freight": 162.33, "shipName": "Ernst Handel", "shipCity": "Graz", "shipCountry": "Austria" },
+    { "orderID": 10353, "customerID": "PICCO", "employeeID": 7, "orderDate": "1996-11-13", "requiredDate": "1996-12-11", "shippedDate": "1996-11-25", "shipVia": 3, "freight": 360.63, "shipName": "Piccolo und mehr", "shipCity": "Salzburg", "shipCountry": "Austria" },
+    { "orderID": 10406, "customerID": "QUEEN", "employeeID": 7, "orderDate": "1997-01-07", "requiredDate": "1997-02-18", "shippedDate": "1997-01-13", "shipVia": 1, "freight": 108.04, "shipName": "Queen Cozinha", "shipCity": "Sao Paulo", "shipCountry": "Brazil" },
+    { "orderID": 10430, "customerID": "ERNSH", "employeeID": 4, "orderDate": "1997-01-30", "requiredDate": "1997-02-13", "shippedDate": "1997-02-03", "shipVia": 1, "freight": 458.78, "shipName": "Ernst Handel", "shipCity": "Graz", "shipCountry": "Austria" },
+    { "orderID": 10514, "customerID": "ERNSH", "employeeID": 3, "orderDate": "1997-04-22", "requiredDate": "1997-05-20", "shippedDate": "1997-05-16", "shipVia": 2, "freight": 789.95, "shipName": "Ernst Handel", "shipCity": "Graz", "shipCountry": "Austria" },
+    { "orderID": 10540, "customerID": "QUICK", "employeeID": 3, "orderDate": "1997-05-19", "requiredDate": "1997-06-16", "shippedDate": "1997-06-13", "shipVia": 3, "freight": 1007.64, "shipName": "QUICK-Stop", "shipCity": "Cunewalde", "shipCountry": "Germany" },
+    { "orderID": 10612, "customerID": "SAVEA", "employeeID": 1, "orderDate": "1997-07-28", "requiredDate": "1997-08-25", "shippedDate": "1997-08-01", "shipVia": 2, "freight": 544.08, "shipName": "Save-a-lot Markets", "shipCity": "Boise", "shipCountry": "USA" },
+    { "orderID": 10678, "customerID": "SAVEA", "employeeID": 7, "orderDate": "1997-09-23", "requiredDate": "1997-10-21", "shippedDate": "1997-10-16", "shipVia": 3, "freight": 388.98, "shipName": "Save-a-lot Markets", "shipCity": "Boise", "shipCountry": "USA" },
+    { "orderID": 10691, "customerID": "QUICK", "employeeID": 2, "orderDate": "1997-10-03", "requiredDate": "1997-11-14", "shippedDate": "1997-10-22", "shipVia": 2, "freight": 810.05, "shipName": "QUICK-Stop", "shipCity": "Cunewalde", "shipCountry": "Germany" },
+    { "orderID": 10776, "customerID": "ERNSH", "employeeID": 1, "orderDate": "1997-12-15", "requiredDate": "1998-01-12", "shippedDate": "1997-12-18", "shipVia": 3, "freight": 351.53, "shipName": "Ernst Handel", "shipCity": "Graz", "shipCountry": "Austria" },
+    { "orderID": 10816, "customerID": "GREAL", "employeeID": 4, "orderDate": "1998-01-06", "requiredDate": "1998-02-03", "shippedDate": "1998-02-04", "shipVia": 2, "freight": 719.78, "shipName": "Great Lakes Food Market", "shipCity": "Eugene", "shipCountry": "USA" },
+    { "orderID": 10836, "customerID": "ERNSH", "employeeID": 7, "orderDate": "1998-01-16", "requiredDate": "1998-02-13", "shippedDate": "1998-01-21", "shipVia": 1, "freight": 411.88, "shipName": "Ernst Handel", "shipCity": "Graz", "shipCountry": "Austria" },
+    { "orderID": 10865, "customerID": "QUICK", "employeeID": 2, "orderDate": "1998-02-02", "requiredDate": "1998-02-16", "shippedDate": "1998-02-12", "shipVia": 1, "freight": 348.14, "shipName": "QUICK-Stop", "shipCity": "Cunewalde", "shipCountry": "Germany" },
+    { "orderID": 10983, "customerID": "SAVEA", "employeeID": 2, "orderDate": "1998-03-27", "requiredDate": "1998-04-24", "shippedDate": "1998-04-06", "shipVia": 2, "freight": 657.54, "shipName": "Save-a-lot Markets", "shipCity": "Boise", "shipCountry": "USA" },
+    { "orderID": 11030, "customerID": "SAVEA", "employeeID": 7, "orderDate": "1998-04-17", "requiredDate": "1998-05-15", "shippedDate": "1998-04-27", "shipVia": 2, "freight": 830.75, "shipName": "Save-a-lot Markets", "shipCity": "Boise", "shipCountry": "USA" },
+    { "orderID": 11077, "customerID": "RATTC", "employeeID": 1, "orderDate": "1998-05-06", "requiredDate": "1998-06-03", "shippedDate": null, "shipVia": 2, "freight": 8.53, "shipName": "Rattlesnake Canyon Grocery", "shipCity": "Albuquerque", "shipCountry": "USA" }
+  ],
+  "orderDetails": [
+    { "orderID": 10248, "productID": 11, "unitPrice": 14, "quantity": 12, "discount": 0 },
+    { "orderID": 10248, "productID": 72, "unitPrice": 34.8, "quantity": 5, "discount": 0 },
+    { "orderID": 10250, "productID": 51, "unitPrice": 42.4, "quantity": 35, "discount": 0.15 },
+    { "orderID": 10252, "productID": 20, "unitPrice": 64.8, "quantity": 40, "discount": 0.05 },
+    { "orderID": 10252, "productID": 60, "unitPrice": 27.2, "quantity": 40, "discount": 0 },
+    { "orderID": 10258, "productID": 2, "unitPrice": 15.2, "quantity": 50, "discount": 0.2 },
+    { "orderID": 10260, "productID": 62, "unitPrice": 39.4, "quantity": 15, "discount": 0.25 },
+    { "orderID": 10263, "productID": 16, "unitPrice": 13.9, "quantity": 60, "discount": 0.25 },
+    { "orderID": 10324, "productID": 59, "unitPrice": 44, "quantity": 40, "discount": 0.15 },
+    { "orderID": 10351, "productID": 38, "unitPrice": 210.8, "quantity": 20, "discount": 0.05 },
+    { "orderID": 10353, "productID": 38, "unitPrice": 210.8, "quantity": 50, "discount": 0.2 },
+    { "orderID": 10406, "productID": 28, "unitPrice": 36.4, "quantity": 42, "discount": 0.1 },
+    { "orderID": 10430, "productID": 17, "unitPrice": 31.2, "quantity": 45, "discount": 0.2 },
+    { "orderID": 10430, "productID": 59, "unitPrice": 44, "quantity": 70, "discount": 0.2 },
+    { "orderID": 10514, "productID": 20, "unitPrice": 81, "quantity": 39, "discount": 0 },
+    { "orderID": 10514, "productID": 56, "unitPrice": 38, "quantity": 70, "discount": 0 },
+    { "orderID": 10540, "productID": 38, "unitPrice": 263.5, "quantity": 30, "discount": 0 },
+    { "orderID": 10612, "productID": 10, "unitPrice": 31, "quantity": 70, "discount": 0 },
+    { "orderID": 10612, "productID": 60, "unitPrice": 34, "quantity": 40, "discount": 0 },
+    { "orderID": 10678, "productID": 12, "unitPrice": 38, "quantity": 100, "discount": 0 },
+    { "orderID": 10691, "productID": 29, "unitPrice": 123.79, "quantity": 40, "discount": 0 },
+    { "orderID": 10691, "productID": 43, "unitPrice": 46, "quantity": 40, "discount": 0 },
+    { "orderID": 10776, "productID": 51, "unitPrice": 53, "quantity": 120, "discount": 0.05 },
+    { "orderID": 10816, "productID": 38, "unitPrice": 263.5, "quantity": 30, "discount": 0.05 },
+    { "orderID": 10836, "productID": 60, "unitPrice": 34, "quantity": 60, "discount": 0 },
+    { "orderID": 10865, "productID": 38, "unitPrice": 263.5, "quantity": 60, "discount": 0.05 },
+    { "orderID": 10983, "productID": 13, "unitPrice": 6, "quantity": 84, "discount": 0.15 },
+    { "orderID": 11030, "productID": 2, "unitPrice": 19, "quantity": 100, "discount": 0.25 },
+    { "orderID": 11030, "productID": 29, "unitPrice": 123.79, "quantity": 60, "discount": 0.25 },
+    { "orderID": 11030, "productID": 59, "unitPrice": 55, "quantity": 100, "discount": 0.25 },
+    { "orderID": 11077, "productID": 2, "unitPrice": 19, "quantity": 24, "discount": 0.2 },
+    { "orderID": 11077, "productID": 7, "unitPrice": 30, "quantity": 1, "discount": 0.05 },
+    { "orderID": 11077, "productID": 60, "unitPrice": 34, "quantity": 2, "discount": 0.06 }
+  ]
 }
-
-function cleanValue(val) {
-  if (val.toUpperCase() === 'NULL') return null;
-  if (val.startsWith("N'") && val.endsWith("'")) return val.slice(2, -1);
-  if (val.startsWith("'") && val.endsWith("'")) return val.slice(1, -1);
-  if (!isNaN(val) && val !== '') return Number(val);
-  return val;
-}
-
-function runExtraction() {
-  console.log('🔄 در حال خواندن و استخراج داده‌های تحلیلی Northwind...');
-
-  if (!fs.existsSync(SQL_FILE_PATH)) {
-    console.error('❌ خطا: فایل InstNwnd_UTF8.txt در مسیر اصلی پروژه یافت نشد!');
-    process.exit(1);
-  }
-
-  const sqlContent = fs.readFileSync(SQL_FILE_PATH, 'utf-8');
-
-  const categories = [];
-  const customers = [];
-  const employees = [];
-  const shippers = [];
-  const suppliers = [];
-  const products = [];
-  const orders = [];
-  const orderDetails = [];
-
-  // ۱. دسته‌بندی‌ها (بدون فیلد باینری تصویر)
-  const catRegex = /INSERT\s+"Categories"\s*\("CategoryID","CategoryName","Description","Picture"\)\s*VALUES\s*\(([^;]+)\)/gi;
-  let match;
-  while ((match = catRegex.exec(sqlContent)) !== null) {
-    const vals = parseSqlValues(match[1]);
-    categories.push({
-      categoryID: vals[0],
-      categoryName: vals[1],
-      description: vals[2],
-    });
-  }
-
-  // ۲. مشتریان
-  const custRegex = /INSERT\s+"Customers"\s*VALUES\s*\(([^)]+)\)/gi;
-  while ((match = custRegex.exec(sqlContent)) !== null) {
-    const vals = parseSqlValues(match[1]);
-    customers.push({
-      customerID: vals[0],
-      companyName: vals[1],
-      contactName: vals[2],
-      contactTitle: vals[3],
-      address: vals[4],
-      city: vals[5],
-      region: vals[6],
-      postalCode: vals[7],
-      country: vals[8],
-      phone: vals[9],
-      fax: vals[10],
-    });
-  }
-
-  // ۳. کارکنان (بدون فیلد باینری تصویر)
-  const empRegex = /INSERT\s+"Employees"\s*\([^)]+\)\s*VALUES\s*\(([\s\S]*?)\)(?:\r?\n|\s*go|\s*$)/gi;
-  while ((match = empRegex.exec(sqlContent)) !== null) {
-    const vals = parseSqlValues(match[1]);
-    employees.push({
-      employeeID: vals[0],
-      lastName: vals[1],
-      firstName: vals[2],
-      title: vals[3],
-      titleOfCourtesy: vals[4],
-      birthDate: vals[5],
-      hireDate: vals[6],
-      address: vals[7],
-      city: vals[8],
-      region: vals[9],
-      postalCode: vals[10],
-      country: vals[11],
-      homePhone: vals[12],
-      extension: vals[13],
-      reportsTo: vals[16],
-    });
-  }
-
-  // ۴. شرکت‌های حمل و نقل
-  const shipRegex = /INSERT\s+"Shippers"\s*\("ShipperID","CompanyName","Phone"\)\s*VALUES\s*\(([^)]+)\)/gi;
-  while ((match = shipRegex.exec(sqlContent)) !== null) {
-    const vals = parseSqlValues(match[1]);
-    shippers.push({
-      shipperID: vals[0],
-      companyName: vals[1],
-      phone: vals[2],
-    });
-  }
-
-  // ۵. تامین‌کنندگان
-  const suppRegex = /INSERT\s+"Suppliers"\s*\([^)]+\)\s*VALUES\s*\(([^)]+)\)/gi;
-  while ((match = suppRegex.exec(sqlContent)) !== null) {
-    const vals = parseSqlValues(match[1]);
-    suppliers.push({
-      supplierID: vals[0],
-      companyName: vals[1],
-      contactName: vals[2],
-      contactTitle: vals[3],
-      country: vals[8],
-    });
-  }
-
-  // ۶. محصولات
-  const prodRegex = /INSERT\s+"Products"\s*\([^)]+\)\s*VALUES\s*\(([^)]+)\)/gi;
-  while ((match = prodRegex.exec(sqlContent)) !== null) {
-    const vals = parseSqlValues(match[1]);
-    products.push({
-      productID: vals[0],
-      productName: vals[1],
-      supplierID: vals[2],
-      categoryID: vals[3],
-      quantityPerUnit: vals[4],
-      unitPrice: Number(vals[5]),
-      unitsInStock: Number(vals[6]),
-      unitsOnOrder: Number(vals[7]),
-      reorderLevel: Number(vals[8]),
-      discontinued: Boolean(vals[9]),
-    });
-  }
-
-  // ۷. سفارشات
-  const orderRegex = /INSERT\s+INTO\s+"Orders"\s*\([^)]+\)\s*VALUES\s*\(([\s\S]*?)\)(?:\r?\n|go|$)/gi;
-  while ((match = orderRegex.exec(sqlContent)) !== null) {
-    const vals = parseSqlValues(match[1]);
-    orders.push({
-      orderID: vals[0],
-      customerID: vals[1],
-      employeeID: vals[2],
-      orderDate: vals[3],
-      requiredDate: vals[4],
-      shippedDate: vals[5],
-      shipVia: vals[6],
-      freight: Number(vals[7]),
-      shipName: vals[8],
-      shipCity: vals[10],
-      shipRegion: vals[11],
-      shipCountry: vals[13],
-    });
-  }
-
-  // ۸. جزئیات سفارشات
-  const detailRegex = /INSERT\s+"Order Details"\s*VALUES\s*\(([^)]+)\)/gi;
-  while ((match = detailRegex.exec(sqlContent)) !== null) {
-    const vals = parseSqlValues(match[1]);
-    orderDetails.push({
-      orderID: vals[0],
-      productID: vals[1],
-      unitPrice: Number(vals[2]),
-      quantity: Number(vals[3]),
-      discount: Number(vals[4]),
-    });
-  }
-
-  if (!fs.existsSync(OUTPUT_DIR)) {
-    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  }
-
-  const outputData = {
-    metadata: {
-      generatedAt: new Date().toISOString(),
-      referenceDate: '1998-05-06',
-      counts: {
-        categories: categories.length,
-        customers: customers.length,
-        employees: employees.length,
-        shippers: shippers.length,
-        suppliers: suppliers.length,
-        products: products.length,
-        orders: orders.length,
-        orderDetails: orderDetails.length,
-      },
-    },
-    categories,
-    customers,
-    employees,
-    shippers,
-    suppliers,
-    products,
-    orders,
-    orderDetails,
-  };
-
-  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(outputData, null, 2), 'utf-8');
-
-  console.log('✅ استخراج با موفقیت انجام شد:');
-  console.log(`   - دسته‌بندی‌ها: ${categories.length} رکورد`);
-  console.log(`   - مشتریان: ${customers.length} رکورد`);
-  console.log(`   - کارکنان: ${employees.length} رکورد`);
-  console.log(`   - محصولات: ${products.length} رکورد`);
-  console.log(`   - سفارش‌ها: ${orders.length} رکورد`);
-  console.log(`   - اقلام سفارش: ${orderDetails.length} رکورد`);
-  console.log(`📁 ذخیره شد در: ${OUTPUT_FILE}`);
-}
-
-runExtraction();
