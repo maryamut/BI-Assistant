@@ -1,91 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGeminiInstance, analyticsTools, executeTool } from '@/lib/gemini';
+import {
+  calculateKPIs,
+  getTopProducts,
+  getTopCustomers,
+  getOperationalAnomalies,
+  REFERENCE_DATE,
+} from '@/lib/analytics';
 
 export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const ai = getGeminiInstance();
-    if (!ai) {
-      return NextResponse.json(
-        {
-          error: 'MISSING_API_KEY',
-          message: 'کلید وب‌سرویس GEMINI_API_KEY در تنظیمات پروژه (Environment Variables) تعریف نشده است.'
-        },
-        { status: 503 }
-      );
-    }
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    const { messages, currentFilters } = await req.json();
-
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: 'پیامی ارسال نشده است.' }, { status: 400 });
-    }
-
-    const userMessage = messages[messages.length - 1].content;
-    if (userMessage.length > 500) {
-      return NextResponse.json({ error: 'طول پیام بیش از حد مجاز است.' }, { status: 400 });
-    }
-
-    const systemInstruction = `شما «مدیریار»، دستیار ارشد هوش تجاری و تصمیم‌گیری سازمانی برای دیتابیس Northwind هستید.
-قوانین اکید:
-۱. تمام پاسخ‌ها را به زبان فارسی رسمی، تحلیلی و شایسته مدیران ارشد ارائه دهید.
-۲. تاریخ مرجع دیتابیس مه ۱۹۹۸ است.
-۳. هیچ عددی را حدس نزنید و ابداع نکنید؛ حتماً از ابزارهای محاسباتی تعبیه‌شده برای واکشی آمار استفاده کنید.
-۴. فیلتر جاری اعمال‌شده توسط کاربر عبارت است از: ${JSON.stringify(currentFilters || {})}.
-۵. نتایج را با بینش کسب‌وکاری و پیشنهادات اجرایی خلاصه و مستدل سازید.`;
-
-    const model = 'gemini-2.5-flash';
-    const response = await ai.models.generateContent({
-      model,
-      contents: userMessage,
-      config: {
-        systemInstruction,
-        tools: [{ functionDeclarations: analyticsTools }]
-      }
-    });
-
-    const functionCalls = response.functionCalls;
-    if (functionCalls && functionCalls.length > 0) {
-      const call = functionCalls[0];
-      const toolResult = await executeTool(call.name, call.args);
-
-      // ارسال نتیجه تابع به مدل جهت دریافت تحلیل نهایی
-      const secondResponse = await ai.models.generateContent({
-        model,
-        contents: [
-          { role: 'user', parts: [{ text: userMessage }] },
-          { role: 'model', parts: [{ functionCall: call }] },
-          {
-            role: 'tool',
-            parts: [
-              {
-                functionResponse: {
-                  name: call.name,
-                  response: { result: toolResult }
-                }
-              }
-            ]
-          }
-        ],
-        config: { systemInstruction }
-      });
-
+    if (!apiKey || apiKey.trim() === '') {
       return NextResponse.json({
-        reply: secondResponse.text,
-        toolCalled: call.name,
-        toolResult
+        reply: '⚠️ کلید اتصال به هوش مصنوعی (GEMINI_API_KEY) در تنظیمات Vercel ثبت نشده است. داشبورد و نمودارها به درستی کار می‌کنند؛ برای فعال شدن چت هوشمند، کلید خود را در تب Settings > Environment Variables در Vercel وارد کنید.',
+        requiresKey: true,
       });
     }
 
-    return NextResponse.json({
-      reply: response.text || 'پاسخی برای این سوال دریافت نشد.'
-    });
+    const { message, activeFilters } = await req.json();
+
+    if (!message || typeof message !== 'string') {
+      return NextResponse.json({ error: 'پیام نامعتبر است' }, { status: 400 });
+    }
+
+    // استخراج شاخص‌ها و اطلاعات واقعی برای هوش مصنوعی
+    const kpis = calculateKPIs(activeFilters || {});
+    const topProds = getTopProducts(activeFilters || {}, 5);
+    const topCusts = getTopCustomers(activeFilters || {}, 5);
+    const anomalies = getOperationalAnomalies();
+
+    const promptContext = `
+شما «مدیریار»، مشاور ارشد هوش تجاری سازمان بر روی داده‌های Northwind هستید.
+تاریخ مرجع کنونی داده‌ها: ${REFERENCE_DATE}.
+فیلترهای انتخابی کاربر: ${JSON.stringify(activeFilters || {})}.
+
+آمار دقیق و واقعی دیتابیس (بدون عددسازی):
+- فروش خالص کل: $${kpis.totalNetSales}
+- تعداد سفارش‌ها: ${kpis.totalOrders}
+- میانگین سبد خرید (AOV): $${kpis.averageOrderValue}
+- تعداد مشتریان فعال: ${kpis.activeCustomersCount}
+- سفارش‌های دارای تأخیر ارسال: ${kpis.delayedOrdersCount} مورد
+- ۵ محصول برتر در فروش: ${topProds.map((p) => `${p.productName} ($${p.totalSales})`).join('، ')}
+- ۵ مشتری برتر: ${topCusts.map((c) => `${c.companyName} ($${c.totalSales})`).join('، ')}
+- سفارش‌های دارای بیشترین تأخیر: ${anomalies.delayed.map((d) => `سفارش #${d.orderID} با ${d.delayDays} روز تأخیر`).join('، ')}
+
+پرسش کاربر: "${message}"
+
+پاسخ را با لحن مدیریتی، حرفه‌ای، به زبان فارسی و با ارجاع دقیق به ارقام فوق بنویسید.
+`;
+
+    // فراخوانی مستقیم API رسمی Gemini بدون پکیج‌های واسطه
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: promptContext }],
+            },
+          ],
+        }),
+      }
+    );
+
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text();
+      console.error('Gemini API Error:', errText);
+      return NextResponse.json({
+        reply: 'متأسفانه در پاسخ‌دهی هوش مصنوعی خطایی رخ داد. لطفاً صحت کلید GEMINI_API_KEY را بررسی کنید.',
+      });
+    }
+
+    const result = await geminiRes.json();
+    const replyText =
+      result.candidates?.[0]?.content?.parts?.[0]?.text ||
+      'پاسخی از مدل دریافت نشد.';
+
+    return NextResponse.json({ reply: replyText });
   } catch (error: any) {
-    console.error('Chat API Error:', error);
+    console.error('Chat Handler Error:', error);
     return NextResponse.json(
-      { error: 'INTERNAL_ERROR', message: 'خطا در برقراری ارتباط با مدل هوش مصنوعی.' },
+      { reply: 'خطا در برقراری ارتباط با مشاور هوشمند.' },
       { status: 500 }
     );
   }
