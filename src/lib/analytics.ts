@@ -3,7 +3,16 @@ import { NorthwindDataset, FilterParams } from '@/types/northwind';
 
 const data = rawData as unknown as NorthwindDataset;
 
+// تاریخ مرجع با هر دو نام برای سازگاری کامل با Header و سایر بخش‌ها
 export const REFERENCE_DATE = data.metadata?.referenceDate || '1998-05-06';
+export const ANCHOR_DATE = REFERENCE_DATE;
+
+export const categories = data.categories || [];
+export const customers = data.customers || [];
+export const employees = data.employees || [];
+export const products = data.products || [];
+export const orders = data.orders || [];
+export const orderDetails = data.orderDetails || [];
 
 export function getLineItemNetSales(item: { unitPrice: number; quantity: number; discount: number }): number {
   return Number((item.unitPrice * item.quantity * (1 - item.discount)).toFixed(2));
@@ -78,8 +87,12 @@ export function calculateKPIs(filters: FilterParams = {}) {
     totalDiscountLost: Math.round(totalDiscountLost * 100) / 100,
     delayedOrdersCount: delayedOrders.length,
     referenceDate: REFERENCE_DATE,
+    anchorDate: ANCHOR_DATE,
   };
 }
+
+// نام‌های مستعار برای سازگاری با کدهای قبلی
+export const getKPIs = calculateKPIs;
 
 export function getSalesTrend(filters: FilterParams = {}) {
   const filteredOrders = getFilteredOrders(filters);
@@ -265,6 +278,8 @@ export function getOperationalAnomalies() {
 
   return { delayed, lowStock };
 }
+
+export const getAnomalies = getOperationalAnomalies;
 
 export const staticEntities = {
   categories: data.categories || [],
