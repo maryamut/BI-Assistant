@@ -1,0 +1,232 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+const fs = require('fs');
+const path = require('path');
+
+const SQL_FILE_PATH = path.join(process.cwd(), 'InstNwnd_UTF8.txt');
+const OUTPUT_DIR = path.join(process.cwd(), 'src', 'data');
+const OUTPUT_FILE = path.join(OUTPUT_DIR, 'northwind.json');
+
+function parseSqlValues(valuesString) {
+  const result = [];
+  let current = '';
+  let inString = false;
+
+  for (let i = 0; i < valuesString.length; i++) {
+    const char = valuesString[i];
+
+    if (char === "'" && (i === 0 || valuesString[i - 1] !== '\\')) {
+      if (inString && valuesString[i + 1] === "'") {
+        current += "'";
+        i++; // رد کردن کوتیشن اسکیپ شده
+      } else {
+        inString = !inString;
+      }
+    } else if (char === ',' && !inString) {
+      result.push(cleanValue(current.trim()));
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(cleanValue(current.trim()));
+  return result;
+}
+
+function cleanValue(val) {
+  if (val.toUpperCase() === 'NULL') return null;
+  if (val.startsWith("N'") && val.endsWith("'")) return val.slice(2, -1);
+  if (val.startsWith("'") && val.endsWith("'")) return val.slice(1, -1);
+  if (!isNaN(val) && val !== '') return Number(val);
+  return val;
+}
+
+function runExtraction() {
+  console.log('🔄 در حال خواندن و استخراج داده‌های تحلیلی Northwind...');
+
+  if (!fs.existsSync(SQL_FILE_PATH)) {
+    console.error('❌ خطا: فایل InstNwnd_UTF8.txt در مسیر اصلی پروژه یافت نشد!');
+    process.exit(1);
+  }
+
+  const sqlContent = fs.readFileSync(SQL_FILE_PATH, 'utf-8');
+
+  const categories = [];
+  const customers = [];
+  const employees = [];
+  const shippers = [];
+  const suppliers = [];
+  const products = [];
+  const orders = [];
+  const orderDetails = [];
+
+  // ۱. دسته‌بندی‌ها (بدون فیلد باینری تصویر)
+  const catRegex = /INSERT\s+"Categories"\s*\("CategoryID","CategoryName","Description","Picture"\)\s*VALUES\s*\(([^;]+)\)/gi;
+  let match;
+  while ((match = catRegex.exec(sqlContent)) !== null) {
+    const vals = parseSqlValues(match[1]);
+    categories.push({
+      categoryID: vals[0],
+      categoryName: vals[1],
+      description: vals[2],
+    });
+  }
+
+  // ۲. مشتریان
+  const custRegex = /INSERT\s+"Customers"\s*VALUES\s*\(([^)]+)\)/gi;
+  while ((match = custRegex.exec(sqlContent)) !== null) {
+    const vals = parseSqlValues(match[1]);
+    customers.push({
+      customerID: vals[0],
+      companyName: vals[1],
+      contactName: vals[2],
+      contactTitle: vals[3],
+      address: vals[4],
+      city: vals[5],
+      region: vals[6],
+      postalCode: vals[7],
+      country: vals[8],
+      phone: vals[9],
+      fax: vals[10],
+    });
+  }
+
+  // ۳. کارکنان (بدون فیلد باینری تصویر)
+  const empRegex = /INSERT\s+"Employees"\s*\([^)]+\)\s*VALUES\s*\(([\s\S]*?)\)(?:\r?\n|\s*go|\s*$)/gi;
+  while ((match = empRegex.exec(sqlContent)) !== null) {
+    const vals = parseSqlValues(match[1]);
+    employees.push({
+      employeeID: vals[0],
+      lastName: vals[1],
+      firstName: vals[2],
+      title: vals[3],
+      titleOfCourtesy: vals[4],
+      birthDate: vals[5],
+      hireDate: vals[6],
+      address: vals[7],
+      city: vals[8],
+      region: vals[9],
+      postalCode: vals[10],
+      country: vals[11],
+      homePhone: vals[12],
+      extension: vals[13],
+      reportsTo: vals[16],
+    });
+  }
+
+  // ۴. شرکت‌های حمل و نقل
+  const shipRegex = /INSERT\s+"Shippers"\s*\("ShipperID","CompanyName","Phone"\)\s*VALUES\s*\(([^)]+)\)/gi;
+  while ((match = shipRegex.exec(sqlContent)) !== null) {
+    const vals = parseSqlValues(match[1]);
+    shippers.push({
+      shipperID: vals[0],
+      companyName: vals[1],
+      phone: vals[2],
+    });
+  }
+
+  // ۵. تامین‌کنندگان
+  const suppRegex = /INSERT\s+"Suppliers"\s*\([^)]+\)\s*VALUES\s*\(([^)]+)\)/gi;
+  while ((match = suppRegex.exec(sqlContent)) !== null) {
+    const vals = parseSqlValues(match[1]);
+    suppliers.push({
+      supplierID: vals[0],
+      companyName: vals[1],
+      contactName: vals[2],
+      contactTitle: vals[3],
+      country: vals[8],
+    });
+  }
+
+  // ۶. محصولات
+  const prodRegex = /INSERT\s+"Products"\s*\([^)]+\)\s*VALUES\s*\(([^)]+)\)/gi;
+  while ((match = prodRegex.exec(sqlContent)) !== null) {
+    const vals = parseSqlValues(match[1]);
+    products.push({
+      productID: vals[0],
+      productName: vals[1],
+      supplierID: vals[2],
+      categoryID: vals[3],
+      quantityPerUnit: vals[4],
+      unitPrice: Number(vals[5]),
+      unitsInStock: Number(vals[6]),
+      unitsOnOrder: Number(vals[7]),
+      reorderLevel: Number(vals[8]),
+      discontinued: Boolean(vals[9]),
+    });
+  }
+
+  // ۷. سفارشات
+  const orderRegex = /INSERT\s+INTO\s+"Orders"\s*\([^)]+\)\s*VALUES\s*\(([\s\S]*?)\)(?:\r?\n|go|$)/gi;
+  while ((match = orderRegex.exec(sqlContent)) !== null) {
+    const vals = parseSqlValues(match[1]);
+    orders.push({
+      orderID: vals[0],
+      customerID: vals[1],
+      employeeID: vals[2],
+      orderDate: vals[3],
+      requiredDate: vals[4],
+      shippedDate: vals[5],
+      shipVia: vals[6],
+      freight: Number(vals[7]),
+      shipName: vals[8],
+      shipCity: vals[10],
+      shipRegion: vals[11],
+      shipCountry: vals[13],
+    });
+  }
+
+  // ۸. جزئیات سفارشات
+  const detailRegex = /INSERT\s+"Order Details"\s*VALUES\s*\(([^)]+)\)/gi;
+  while ((match = detailRegex.exec(sqlContent)) !== null) {
+    const vals = parseSqlValues(match[1]);
+    orderDetails.push({
+      orderID: vals[0],
+      productID: vals[1],
+      unitPrice: Number(vals[2]),
+      quantity: Number(vals[3]),
+      discount: Number(vals[4]),
+    });
+  }
+
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  }
+
+  const outputData = {
+    metadata: {
+      generatedAt: new Date().toISOString(),
+      referenceDate: '1998-05-06',
+      counts: {
+        categories: categories.length,
+        customers: customers.length,
+        employees: employees.length,
+        shippers: shippers.length,
+        suppliers: suppliers.length,
+        products: products.length,
+        orders: orders.length,
+        orderDetails: orderDetails.length,
+      },
+    },
+    categories,
+    customers,
+    employees,
+    shippers,
+    suppliers,
+    products,
+    orders,
+    orderDetails,
+  };
+
+  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(outputData, null, 2), 'utf-8');
+
+  console.log('✅ استخراج با موفقیت انجام شد:');
+  console.log(`   - دسته‌بندی‌ها: ${categories.length} رکورد`);
+  console.log(`   - مشتریان: ${customers.length} رکورد`);
+  console.log(`   - کارکنان: ${employees.length} رکورد`);
+  console.log(`   - محصولات: ${products.length} رکورد`);
+  console.log(`   - سفارش‌ها: ${orders.length} رکورد`);
+  console.log(`   - اقلام سفارش: ${orderDetails.length} رکورد`);
+  console.log(`📁 ذخیره شد در: ${OUTPUT_FILE}`);
+}
+
+runExtraction();
