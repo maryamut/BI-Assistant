@@ -27,10 +27,10 @@ export async function POST(req: NextRequest) {
     }
 
     // استخراج شاخص‌ها و اطلاعات واقعی برای هوش مصنوعی
-    const kpis = calculateKPIs(activeFilters || {});
-    const topProds = getTopProducts(activeFilters || {}, 5);
-    const topCusts = getTopCustomers(activeFilters || {}, 5);
-    const anomalies = getOperationalAnomalies();
+    const kpis: any = calculateKPIs(activeFilters || {});
+    const topProds: any[] = getTopProducts(activeFilters || {}, 5);
+    const topCusts: any[] = getTopCustomers(activeFilters || {}, 5);
+    const anomalies: any = getOperationalAnomalies();
 
     const promptContext = `
 شما «مدیریار»، مشاور ارشد هوش تجاری سازمان بر روی داده‌های Northwind هستید.
@@ -43,9 +43,9 @@ export async function POST(req: NextRequest) {
 - میانگین سبد خرید (AOV): $${kpis.averageOrderValue}
 - تعداد مشتریان فعال: ${kpis.activeCustomersCount}
 - سفارش‌های دارای تأخیر ارسال: ${kpis.delayedOrdersCount} مورد
-- ۵ محصول برتر در فروش: ${topProds.map((p) => `${p.productName} ($${p.totalSales})`).join('، ')}
-- ۵ مشتری برتر: ${topCusts.map((c) => `${c.companyName} ($${c.totalSales})`).join('، ')}
-- سفارش‌های دارای بیشترین تأخیر: ${anomalies.delayed.map((d) => `سفارش #${d.orderID} با ${d.delayDays} روز تأخیر`).join('، ')}
+- ۵ محصول برتر در فروش: ${topProds.map((p: any) => `${p.productName} ($${p.totalSales})`).join('، ')}
+- ۵ مشتری برتر: ${topCusts.map((c: any) => `${c.companyName} ($${c.totalSales})`).join('، ')}
+- سفارش‌های دارای بیشترین تأخیر: ${anomalies.delayed.map((d: any) => `سفارش #${d.orderID} با ${d.delayDays} روز تأخیر`).join('، ')}
 
 پرسش کاربر: "${message}"
 
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const result = await geminiRes.json();
+    const result: any = await geminiRes.json();
     const replyText =
       result.candidates?.[0]?.content?.parts?.[0]?.text ||
       'پاسخی از مدل دریافت نشد.';
